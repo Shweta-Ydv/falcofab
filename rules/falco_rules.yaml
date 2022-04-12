@@ -1898,6 +1898,7 @@
     and container.privileged=true
     and not falco_privileged_containers
     and not user_privileged_containers
+    and not (k8s.ns.name = "kube-system")
   output: Privileged container started (user=%user.name user_loginuid=%user.loginuid command=%proc.cmdline %container.info image=%container.image.repository:%container.image.tag)
   priority: INFO
   tags: [container, cis, mitre_privilege_escalation, mitre_lateral_movement]
@@ -2365,7 +2366,9 @@
      fluent/fluentd-kubernetes-daemonset, prom/prometheus,
      ibm_cloud_containers,
      public.ecr.aws/falcosecurity/falco)
-     or (k8s.ns.name = "kube-system"))
+     or (k8s.ns.name = "kube-system")
+     or (k8s.ns.name = "monitoring")
+     or (k8s.ns.name = "anthos-identity-service"))
 
 - macro: k8s_api_server
   condition: (fd.sip.name="kubernetes.default.svc.cluster.local")
@@ -2382,7 +2385,7 @@
     not k8s_containers and
     k8s_api_server and
     not user_known_contact_k8s_api_server_activities
-  output: Unexpected connection to K8s API Server from container (command=%proc.cmdline %container.info image=%container.image.repository:%container.image.tag connection=%fd.name)
+  output: Unexpected connection to K8s API Server from container: Custom rule triggered (command=%proc.cmdline %container.info image=%container.image.repository:%container.image.tag connection=%fd.name)
   priority: NOTICE
   tags: [network, k8s, container, mitre_discovery]
 
